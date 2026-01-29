@@ -46,7 +46,7 @@ def menu_page():
 # Générer QR code du menu
 @app.route("/qrcode")
 def generate_qr():
-    qr_url = "http://10.203.200.220:5000/menu"
+    qr_url = "http://qr-menu-saas.onrender.com/menu"
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(qr_url)
     qr.make(fit=True)
