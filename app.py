@@ -60,7 +60,7 @@ def menu_page(resto_id):
 def generate_qr(resto_id):
     if resto_id not in restaurants:
         return "Restaurant inconnu"
-    qr_url = f"https://qr-menu-saas.onrender.com/menu/{resto_id}"  # remplacer par ton URL Render
+    qr_url = f"https://qr-menu-saas.onrender.com/menu/resto1"  # remplacer par ton URL Render
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(qr_url)
     qr.make(fit=True)
