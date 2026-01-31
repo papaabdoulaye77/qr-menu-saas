@@ -33,7 +33,7 @@ def menu(resto_id):
 
 @app.route("/qrcode/<resto_id>")
 def qrcode_menu(resto_id):
-    url = f"http://127.0.0.1:5000/menu/{resto_id}"
+    url = f"https://qr-menu-saas.onrender.com/menu/{resto_id}"
 
     img = qrcode.make(url)
     buffer = io.BytesIO()
@@ -44,5 +44,6 @@ def qrcode_menu(resto_id):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
