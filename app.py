@@ -1,13 +1,13 @@
 from flask import Flask, send_file, request, render_template_string, redirect, url_for
 import qrcode
 import io
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Base URL de Render
-BASE_URL = "https://qr-menu-saas.onrender.com"  # remplace par ton URL Render
+BASE_URL = "https://qr-menu-saas.onrender.com"  # METS ICI TON URL RENDER
 
-# Données restaurants (dictionnaire)
+# Dictionnaire pour stocker les restaurants, menus et stats
 restaurants = {
     "resto1": {
         "name": "Pizza Palace",
@@ -16,7 +16,7 @@ restaurants = {
             {"name": "Pizza Pepperoni", "price": 11},
             {"name": "Coca-Cola", "price": 3}
         ],
-        "scans": 0
+        "scans": [],
     },
     "resto2": {
         "name": "Burger House",
@@ -25,24 +25,26 @@ restaurants = {
             {"name": "Frites", "price": 4},
             {"name": "Eau", "price": 2}
         ],
-        "scans": 0
+        "scans": [],
     }
 }
 
-# ================== ROUTES CLIENT ==================
-
+# ================= CLIENT =================
 @app.route("/")
 def home():
-    return "QR Menu SaaS is running"
+    return "<h1>QR Menu SaaS is running</h1><p>Ajoute /menu/resto_id ou /qrcode/resto_id</p>"
 
 @app.route("/menu/<resto_id>")
 def menu(resto_id):
     if resto_id not in restaurants:
         return "Restaurant introuvable", 404
-    restaurants[resto_id]["scans"] += 1
-    html = f"<h1>{restaurants[resto_id]['name']}</h1>"
+    # Ajouter un scan avec date
+    restaurants[resto_id]["scans"].append(datetime.now())
+    
+    html = f"<h1>{restaurants[resto_id]['name']}</h1><ul>"
     for item in restaurants[resto_id]["menu"]:
-        html += f"<p>{item['name']} - {item['price']}€</p>"
+        html += f"<li>{item['name']} - {item['price']}€</li>"
+    html += "</ul>"
     return html
 
 @app.route("/qrcode/<resto_id>")
@@ -58,11 +60,10 @@ def qrcode_menu(resto_id):
 def stats(resto_id):
     if resto_id not in restaurants:
         return "Restaurant introuvable", 404
-    return f"Nombre de scans pour {restaurants[resto_id]['name']} : {restaurants[resto_id]['scans']}"
+    total = len(restaurants[resto_id]["scans"])
+    return f"<h1>Stats pour {restaurants[resto_id]['name']}</h1><p>Total scans : {total}</p>"
 
-# ================== ROUTES ADMIN ==================
-
-# Page admin avec formulaire simple
+# ================= ADMIN =================
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     message = ""
@@ -73,12 +74,12 @@ def admin():
         item_name = request.form.get("item_name")
         item_price = request.form.get("item_price")
 
-        # Ajouter un nouveau resto
+        # Ajouter un restaurant
         if action == "add_resto" and resto_id and name:
             if resto_id in restaurants:
                 message = f"Le resto {resto_id} existe déjà"
             else:
-                restaurants[resto_id] = {"name": name, "menu": [], "scans": 0}
+                restaurants[resto_id] = {"name": name, "menu": [], "scans": []}
                 message = f"Resto {name} ajouté"
 
         # Ajouter un plat
@@ -96,10 +97,9 @@ def admin():
             restaurants[resto_id]["menu"] = [i for i in menu if i["name"] != item_name]
             message = f"Plat {item_name} supprimé de {restaurants[resto_id]['name']}"
 
-    # Page HTML très simple
     html = """
     <h1>Admin QR Menu SaaS</h1>
-    <p style="color: red;">{{message}}</p>
+    <p style="color:red">{{message}}</p>
 
     <h2>Ajouter un restaurant</h2>
     <form method="post">
@@ -132,13 +132,16 @@ def admin():
             <li>{{item.name}} - {{item.price}}€</li>
         {% endfor %}
         </ul>
-        <p>Scans: {{data.scans}}</p>
+        <p>Total scans: {{data.scans|length}}</p>
+        <p>QR Code: <a href="{{base_url}}/qrcode/{{rid}}" target="_blank">{{base_url}}/qrcode/{{rid}}</a></p>
     {% endfor %}
     """
-    return render_template_string(html, restaurants=restaurants, message=message)
+    return render_template_string(html, restaurants=restaurants, message=message, base_url=BASE_URL)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
+
 
 
 
