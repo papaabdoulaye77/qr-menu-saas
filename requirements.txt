@@ -2,5 +2,7 @@ flask
 flask_sqlalchemy
 qrcode
 pillow
+stripe
+gunicorn
 
 
